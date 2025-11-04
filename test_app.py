@@ -2,6 +2,7 @@ import requests
 import csv
 from datetime import datetime
 import time
+import matplotlib.pyplot as plt
 
 REAL_TEST_CASE_1 = "KT Rolster and T1 will face off in an all-LCK grand final at the 2025 League of Legends World Championship after securing decisive victories in Shanghai over the past week. Riot Games said the quarterfinals and semifinals, held Oct. 28–Nov. 2 at Mercedes-Benz Arena, ended with both Korean squads advancing to the title match. The best-of-five final is scheduled for Nov. 9 at Chengdu’s Dong’an Lake Sports Park Multi-Purpose Gymnasium, marking the first Worlds final between LCK teams since 2022. KT Rolster’s run to the championship stage marks the organization’s first Worlds final since entering League of Legends in 2012. T1, meanwhile, is seeking a historic third consecutive championship and a fourth straight finals appearance."
 REAL_TEST_CASE_2 = """US President Donald Trump's administration has said it will provide reduced food aid to more than 42 million Americans, as the government shutdown this week heads towards becoming the longest ever with no resolution in sight.
@@ -33,9 +34,13 @@ FAKE_TEST_CASE_2 = "Hello, I am the best Coder in the World."
 
 rows = [["Test Case", "Timestamp", "JSON Response"]]
 test1_rows = rows.copy()
+test1_ts = []
 test2_rows = rows.copy()
+test2_ts = []
 test3_rows = rows.copy()
+test3_ts = []
 test4_rows = rows.copy()
+test4_ts = []
 
 # print(real_response_1.json())
 # print(real_response_2.json())
@@ -43,38 +48,50 @@ test4_rows = rows.copy()
 # print(fake_response_2.json())
 
 for i in range(100):
+    start = time.time()
     real_response_1 = requests.post(
         "http://server-sentiment-env.eba-vqgsakps.us-east-2.elasticbeanstalk.com/predict",
         json={"message": REAL_TEST_CASE_1}
     )
-    row = ["REAL_TEST_CASE_1", str(time.time()), real_response_1.json()['label']]
+    end = time.time()
+    row = ["REAL_TEST_CASE_1", str(end-start), real_response_1.json()['label']]
+    test1_ts.append(end-start)
     test1_rows.append(row)
     rows.append(row)
 
 for i in range(100):
+    start = time.time()
     real_response_2 = requests.post(
         "http://server-sentiment-env.eba-vqgsakps.us-east-2.elasticbeanstalk.com/predict",
         json={"message": REAL_TEST_CASE_2}
     )
-    row = ["REAL_TEST_CASE_2", str(time.time()), real_response_2.json()['label']]
+    end = time.time()
+    row = ["REAL_TEST_CASE_2", str(end-start), real_response_2.json()['label']]
+    test2_ts.append(end-start)
     test2_rows.append(row)
     rows.append(row)
 
 for i in range(100):
+    start = time.time()
     fake_response_1 = requests.post(
         "http://server-sentiment-env.eba-vqgsakps.us-east-2.elasticbeanstalk.com/predict",
         json={"message": FAKE_TEST_CASE_1}
     )
-    row = ["FAKE_TEST_CASE_1", str(time.time()), fake_response_1.json()['label']]
+    end = time.time()
+    row = ["FAKE_TEST_CASE_1", str(end-start), fake_response_1.json()['label']]
+    test3_ts.append(end-start)
     test3_rows.append(row)
     rows.append(row)
 
 for i in range(100):
+    start = time.time()
     fake_response_2 = requests.post(
         "http://server-sentiment-env.eba-vqgsakps.us-east-2.elasticbeanstalk.com/predict",
         json={"message": FAKE_TEST_CASE_2}
     )
-    row = ["FAKE_TEST_CASE_2", str(time.time()), fake_response_2.json()['label']]
+    end = time.time()
+    row = ["FAKE_TEST_CASE_2", str(end-start), fake_response_2.json()['label']]
+    test4_ts.append(end-start)
     test4_rows.append(row)
     rows.append(row)
 
@@ -97,3 +114,20 @@ with open("test4.csv", "w", newline="") as csvfile:
 with open("test.csv", "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerows(rows)
+
+test_ts = [test1_ts, test2_ts, test3_ts, test4_ts]
+test1_avg = sum(test1_ts) / len(test1_ts)
+test2_avg = sum(test2_ts) / len(test2_ts)
+test3_avg = sum(test3_ts) / len(test3_ts)
+test4_avg = sum(test4_ts) / len(test4_ts)
+print("Average 1", test1_avg)
+print("Average 2", test2_avg)
+print("Average 3", test3_avg)
+print("Average 4", test4_avg)
+# print(test_ts)
+
+plt.boxplot(test_ts, tick_labels=['Real Test Case 1', 'Real Test Case 2', 'Fake Test Case 1', 'Fake Test Case 2'])
+plt.title("Timestamps of Test cases")
+plt.ylabel("Timestamps (seconds)")
+plt.savefig("myplot.png")
+plt.close()

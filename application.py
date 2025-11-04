@@ -2,7 +2,7 @@ import os
 import logging
 import threading
 from typing import Optional
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, render_template
 
 # Flask app (Elastic Beanstalk Procfile expects "application:application")
 application = Flask(__name__)
@@ -85,8 +85,8 @@ def health():
 # Demo page rendering endpoint
 @application.get("/demo")
 def demo():
-    return render_template_string(
-        DEMO_HTML,
+    return render_template(
+        'index.html',
         model_loaded=bool(_loaded_model is not None and _vectorizer is not None),
         model_path=MODEL_PATH,
         prediction=None,
@@ -98,8 +98,8 @@ def demo():
 def predict_form():
     message = (request.form.get("message") or "").strip()
     if not message:
-        return render_template_string(
-            DEMO_HTML,
+        return render_template(
+            'index.html',
             model_loaded=bool(_loaded_model is not None and _vectorizer is not None),
             model_path=MODEL_PATH,
             prediction=None,
@@ -107,16 +107,16 @@ def predict_form():
         ), 400
     try:
         label = _predict_text(message)
-        return render_template_string(
-            DEMO_HTML,
+        return render_template(
+            'index.html',
             model_loaded=True,
             model_path=MODEL_PATH,
             prediction=label,
             error=None,
         )
     except FileNotFoundError:
-        return render_template_string(
-            DEMO_HTML,
+        return render_template(
+            'index.html',
             model_loaded=False,
             model_path=MODEL_PATH,
             prediction=None,
@@ -124,8 +124,8 @@ def predict_form():
         ), 503
     except Exception as e:
         logger.exception("Inference error: %s", e)
-        return render_template_string(
-            DEMO_HTML,
+        return render_template(
+            'index.html',
             model_loaded=bool(_loaded_model is not None and _vectorizer is not None),
             model_path=MODEL_PATH,
             prediction=None,
